@@ -13,7 +13,7 @@ def extract_invoice_info(pdf_image_url):
     questions = [
         "What is the invoice number?",
         "What is the total invoice amount?",
-        "What is the recipient address?",
+        "What is the recipient's address?",
         "What is the recipient country?",
         "What products/services are listed on the invoice?",
     ]
@@ -28,7 +28,7 @@ def extract_invoice_info(pdf_image_url):
     total_amount_str = document_info["What is the total invoice amount?"]
     price = Price.fromstring(total_amount_str)
     amount_value, currency_str = float(price.amount), price.currency
-    recipient_address = document_info["What is the recipient address?"]
+    recipient_address = document_info["What is the recipient's address?"]
     invoice_items = document_info["What products/services are listed on the invoice?"]
     country = document_info["What is the recipient country?"]
 
