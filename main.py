@@ -1,17 +1,16 @@
 import os
-import tempfile
 
 import streamlit as st
+import weaviate
 from dotenv import load_dotenv
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import PyPDFLoader
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import DocArrayInMemorySearch
+from langchain.vectorstores import Weaviate
+
+from src.schema import DOC_CLASS
 
 st.set_page_config(page_title="TAix", page_icon="💸")
 st.title("💸 TAix - Tax Advice Agent")
@@ -20,29 +19,10 @@ load_dotenv()
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever(uploaded_files):
-    # Read documents
-    docs = []
-    temp_dir = tempfile.TemporaryDirectory()
-    for file in uploaded_files:
-        temp_filepath = os.path.join(temp_dir.name, file.name)
-        with open(temp_filepath, "wb") as f:
-            f.write(file.getvalue())
-        loader = PyPDFLoader(temp_filepath)
-        docs.extend(loader.load())
-
-    # Split documents
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-    splits = text_splitter.split_documents(docs)
-
-    # Create embeddings and store in vectordb
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectordb = DocArrayInMemorySearch.from_documents(splits, embeddings)
-
-    # Define retriever
-    retriever = vectordb.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 4})
-
-    return retriever
+def configure_retriever_wv():
+    client = weaviate.Client("http://localhost:8080")
+    vectorstore = Weaviate(client, DOC_CLASS, "content")
+    return vectorstore.as_retriever()
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -70,21 +50,15 @@ class PrintRetrievalHandler(BaseCallbackHandler):
             self.container.markdown(doc.page_content)
 
 
-def chat_with_doc():
-    uploaded_files = st.sidebar.file_uploader(label="Upload PDF files", type=["pdf"], accept_multiple_files=True)
-    if not uploaded_files:
-        st.info("Please upload PDF documents to continue.")
-        st.stop()
+def chat_with_wv():
+    vector_store = configure_retriever_wv()
 
-    retriever = configure_retriever(uploaded_files)
-
-    # Setup memory for contextual conversation
     msgs = StreamlitChatMessageHistory()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
     # Setup LLM and QA chain
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, streaming=True)
-    qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
+    qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, memory=memory, verbose=True)
 
     if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
         msgs.clear()
@@ -104,4 +78,4 @@ def chat_with_doc():
 
 
 if __name__ == "__main__":
-    chat_with_doc()
+    chat_with_wv()

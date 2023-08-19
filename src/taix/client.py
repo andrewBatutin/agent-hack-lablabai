@@ -3,7 +3,7 @@ import os
 import weaviate
 from dotenv import load_dotenv
 
-from src.indexing.wv import DOC_CLASS
+from src.schema import DOC_CLASS
 
 load_dotenv()
 

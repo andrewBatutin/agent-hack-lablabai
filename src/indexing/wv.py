@@ -7,15 +7,12 @@ import weaviate
 from pdf2image import convert_from_path
 
 from src.indexing.layoutlm_qa import extract_invoice_info
-
-TAX_LIMIT = "TAX_LIMIT"
+from src.schema import DOC_CLASS, TAX_LIMIT
 
 logger = getLogger(__name__)
 
 DOC_PATH = "./data/invoices/pdf/"
 IMG_PATH = "./data/invoices/img/"
-
-DOC_CLASS = "Invoice"
 
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
 if not WEAVIATE_URL:
