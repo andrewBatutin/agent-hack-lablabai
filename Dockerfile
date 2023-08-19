@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    poppler \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip

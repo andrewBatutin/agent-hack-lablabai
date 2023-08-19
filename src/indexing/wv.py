@@ -4,16 +4,32 @@ import re
 from logging import getLogger
 
 import weaviate
+from pdf2image import convert_from_path
 
 logger = getLogger(__name__)
 
-DOC_PATH = "./data/invoices/"
+DOC_PATH = "./data/invoices/pdf/"
+IMG_PATH = "./data/invoices/img/"
 
 DOC_CLASS = "Invoice"
 
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
 if not WEAVIATE_URL:
     WEAVIATE_URL = "http://localhost:8080"
+
+
+def pdf_to_img(file_path, file_name):
+    """
+    Convert pdf to image
+    """
+    # Store Pdf with convert_from_path function
+    images = convert_from_path(file_path)
+    img_path = re.sub(".(pdf)", ".jpg", file_name)
+    img_path = IMG_PATH + img_path
+    for i in range(len(images)):
+        # Save pages as images in the pdf
+        images[i].save(img_path, "JPEG")
+        return img_path
 
 
 def set_up_batch():
@@ -61,12 +77,13 @@ def import_data():
         for encoded_file_path in os.listdir(DOC_PATH):
             with open(DOC_PATH + encoded_file_path, "rb") as file:
                 base64_encoding = pdf_to_base64(file)
-
+            img_path = pdf_to_img(file.name, encoded_file_path)
             # The properties from our schema
             data_properties = {
                 "file_name": encoded_file_path,
                 "pdf": base64_encoding,
-                "filepath": file.name,
+                "pdf_path": file.name,
+                "img_path": img_path,
                 # invoice amount
                 # recipient address or country
                 # date
@@ -84,3 +101,6 @@ def run_indexing():
     clear_up_docs()
     import_data()
     logger.info("Finished importing data.")
+
+
+# run_indexing()
