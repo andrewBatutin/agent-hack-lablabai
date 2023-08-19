@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     git \
     poppler \
+    poppler-utils \
+    tesseract-ocr python3-pil  \
+    tesseract-ocr-eng tesseract-ocr-script-latn \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip
