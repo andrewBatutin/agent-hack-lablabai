@@ -6,6 +6,8 @@ from logging import getLogger
 import weaviate
 from pdf2image import convert_from_path
 
+from src.indexing.layoutlm_qa import extract_invoice_info
+
 logger = getLogger(__name__)
 
 DOC_PATH = "./data/invoices/pdf/"
@@ -78,17 +80,15 @@ def import_data():
             with open(DOC_PATH + encoded_file_path, "rb") as file:
                 base64_encoding = pdf_to_base64(file)
             img_path = pdf_to_img(file.name, encoded_file_path)
+
+            invoice_features = extract_invoice_info(img_path)
             # The properties from our schema
             data_properties = {
                 "file_name": encoded_file_path,
                 "pdf": base64_encoding,
                 "pdf_path": file.name,
                 "img_path": img_path,
-                # invoice amount
-                # recipient address or country
-                # date
-                # invoice item/s
-                # img file path
+                **invoice_features,
             }
 
             batch.add_data_object(data_properties, DOC_CLASS)

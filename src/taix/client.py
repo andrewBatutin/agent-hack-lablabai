@@ -28,5 +28,5 @@ def get_batch_with_cursor(client, class_name, class_properties, batch_size=20, c
 
 
 def get_all_docs():
-    docs = get_batch_with_cursor(client, DOC_CLASS, ["file_name", "img_path", "pdf_path"])
+    docs = get_batch_with_cursor(client, DOC_CLASS, ["file_name", "img_path", "pdf_path", "value"])
     return docs
