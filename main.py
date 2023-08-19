@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import streamlit as st
+from dotenv import load_dotenv
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
@@ -12,8 +13,10 @@ from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import DocArrayInMemorySearch
 
-st.set_page_config(page_title="LangChain: Chat with Documents", page_icon="🦜")
-st.title("🦜 LangChain: Chat with Documents")
+st.set_page_config(page_title="TAix", page_icon="💸")
+st.title("💸 TAix - Tax Advice Agent")
+
+load_dotenv()
 
 
 @st.cache_resource(ttl="1h")
@@ -68,11 +71,6 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 
 def chat_with_doc():
-    openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
-
     uploaded_files = st.sidebar.file_uploader(label="Upload PDF files", type=["pdf"], accept_multiple_files=True)
     if not uploaded_files:
         st.info("Please upload PDF documents to continue.")
@@ -85,7 +83,7 @@ def chat_with_doc():
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
     # Setup LLM and QA chain
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, temperature=0, streaming=True)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, streaming=True)
     qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
 
     if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
