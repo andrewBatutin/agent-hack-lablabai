@@ -67,38 +67,43 @@ class PrintRetrievalHandler(BaseCallbackHandler):
             self.container.markdown(doc.page_content)
 
 
-openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.")
-    st.stop()
+def chat_with_doc():
+    openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+    if not openai_api_key:
+        st.info("Please add your OpenAI API key to continue.")
+        st.stop()
 
-uploaded_files = st.sidebar.file_uploader(label="Upload PDF files", type=["pdf"], accept_multiple_files=True)
-if not uploaded_files:
-    st.info("Please upload PDF documents to continue.")
-    st.stop()
+    uploaded_files = st.sidebar.file_uploader(label="Upload PDF files", type=["pdf"], accept_multiple_files=True)
+    if not uploaded_files:
+        st.info("Please upload PDF documents to continue.")
+        st.stop()
 
-retriever = configure_retriever(uploaded_files)
+    retriever = configure_retriever(uploaded_files)
 
-# Setup memory for contextual conversation
-msgs = StreamlitChatMessageHistory()
-memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
+    # Setup memory for contextual conversation
+    msgs = StreamlitChatMessageHistory()
+    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
-# Setup LLM and QA chain
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, temperature=0, streaming=True)
-qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
+    # Setup LLM and QA chain
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, temperature=0, streaming=True)
+    qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
 
-if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
-    msgs.clear()
-    msgs.add_ai_message("How can I help you?")
+    if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
+        msgs.clear()
+        msgs.add_ai_message("How can I help you?")
 
-avatars = {"human": "user", "ai": "assistant"}
-for msg in msgs.messages:
-    st.chat_message(avatars[msg.type]).write(msg.content)
+    avatars = {"human": "user", "ai": "assistant"}
+    for msg in msgs.messages:
+        st.chat_message(avatars[msg.type]).write(msg.content)
 
-if user_query := st.chat_input(placeholder="Ask me anything!"):
-    st.chat_message("user").write(user_query)
+    if user_query := st.chat_input(placeholder="Ask me anything!"):
+        st.chat_message("user").write(user_query)
 
-    with st.chat_message("assistant"):
-        retrieval_handler = PrintRetrievalHandler(st.container())
-        stream_handler = StreamHandler(st.empty())
-        response = qa_chain.run(user_query, callbacks=[retrieval_handler, stream_handler])
+        with st.chat_message("assistant"):
+            retrieval_handler = PrintRetrievalHandler(st.container())
+            stream_handler = StreamHandler(st.empty())
+            response = qa_chain.run(user_query, callbacks=[retrieval_handler, stream_handler])
+
+
+if __name__ == "__main__":
+    chat_with_doc()
