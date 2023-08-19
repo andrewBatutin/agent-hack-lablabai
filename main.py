@@ -20,8 +20,10 @@ load_dotenv()
 
 @st.cache_resource(ttl="1h")
 def configure_retriever_wv():
-    client = weaviate.Client("http://localhost:8080")
-    vectorstore = Weaviate(client, DOC_CLASS, "content")
+    client = weaviate.Client(
+        "http://localhost:8080", additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]}
+    )
+    vectorstore = Weaviate(client, DOC_CLASS, "invoice_items")
     return vectorstore.as_retriever()
 
 

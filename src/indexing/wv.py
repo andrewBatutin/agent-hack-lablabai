@@ -108,7 +108,7 @@ def import_data():
 
 def run_indexing():
     global client
-    client = weaviate.Client(WEAVIATE_URL)
+    client = weaviate.Client(WEAVIATE_URL, additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]})
     set_up_batch()
     clear_up_docs()
     import_data()
