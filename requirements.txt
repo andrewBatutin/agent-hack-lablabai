@@ -1,4 +1,4 @@
-langchain[openai]==0.0.266
+langchain[openai]==0.0.268
 streamlit==1.25.0
 boto3==1.28.28
 psycopg2-binary==2.9.7

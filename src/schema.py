@@ -1,0 +1,2 @@
+TAX_LIMIT = "TAX_LIMIT"
+DOC_CLASS = "Invoice"
