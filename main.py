@@ -1,15 +1,16 @@
 import os
 import tempfile
+
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import PyPDFLoader
-from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
-from langchain.vectorstores import DocArrayInMemorySearch
+from langchain.chat_models import ChatOpenAI
+from langchain.document_loaders import PyPDFLoader
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.memory import ConversationBufferMemory
+from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import DocArrayInMemorySearch
 
 st.set_page_config(page_title="LangChain: Chat with Documents", page_icon="🦜")
 st.title("🦜 LangChain: Chat with Documents")
@@ -71,9 +72,7 @@ if not openai_api_key:
     st.info("Please add your OpenAI API key to continue.")
     st.stop()
 
-uploaded_files = st.sidebar.file_uploader(
-    label="Upload PDF files", type=["pdf"], accept_multiple_files=True
-)
+uploaded_files = st.sidebar.file_uploader(label="Upload PDF files", type=["pdf"], accept_multiple_files=True)
 if not uploaded_files:
     st.info("Please upload PDF documents to continue.")
     st.stop()
@@ -85,12 +84,8 @@ msgs = StreamlitChatMessageHistory()
 memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
 # Setup LLM and QA chain
-llm = ChatOpenAI(
-    model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, temperature=0, streaming=True
-)
-qa_chain = ConversationalRetrievalChain.from_llm(
-    llm, retriever=retriever, memory=memory, verbose=True
-)
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, temperature=0, streaming=True)
+qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory, verbose=True)
 
 if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
     msgs.clear()

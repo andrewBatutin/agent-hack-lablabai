@@ -12,4 +12,3 @@ Accounting made easy
 #### Local Docker
 
 ![doc-loc-config.png](img/doc-loc-config.png)
-
