@@ -8,6 +8,8 @@ from pdf2image import convert_from_path
 
 from src.indexing.layoutlm_qa import extract_invoice_info
 
+TAX_LIMIT = "TAX_LIMIT"
+
 logger = getLogger(__name__)
 
 DOC_PATH = "./data/invoices/pdf/"
@@ -59,6 +61,12 @@ def clear_up_docs():
                 where={"operator": "NotEqual", "path": ["file_name"], "valueString": "x"},
                 output="verbose",
             )
+            batch.delete_objects(
+                class_name=TAX_LIMIT,
+                # same where operator as in the GraphQL API
+                where={"operator": "NotEqual", "path": ["rule"], "valueString": "x"},
+                output="verbose",
+            )
     except:
         logger.error("No objects to delete.")
 
@@ -92,6 +100,13 @@ def import_data():
             }
 
             batch.add_data_object(data_properties, DOC_CLASS)
+        # add a new index for tax limits
+        tax_limit_properties = {
+            "limit_value": 100_000_000,
+            "rule": "Applicable only to EU countries except Slovenia",
+            "currency": "EUR",
+        }
+        batch.add_data_object(tax_limit_properties, TAX_LIMIT)
 
 
 def run_indexing():

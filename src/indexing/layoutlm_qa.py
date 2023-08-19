@@ -14,6 +14,7 @@ def extract_invoice_info(pdf_image_url):
         "What is the invoice number?",
         "What is the total invoice amount?",
         "What is the recipient address?",
+        "What is the recipient country?",
         "What products/services are listed on the invoice?",
     ]
 
@@ -29,6 +30,7 @@ def extract_invoice_info(pdf_image_url):
     amount_value, currency_str = float(price.amount), price.currency
     recipient_address = document_info["What is the recipient address?"]
     invoice_items = document_info["What products/services are listed on the invoice?"]
+    country = document_info["What is the recipient country?"]
 
     return {
         "invoice_number": invoice_number,
@@ -36,4 +38,5 @@ def extract_invoice_info(pdf_image_url):
         "currency": currency_str,
         "recipient_address": recipient_address,
         "invoice_items": invoice_items,
+        "country": country,
     }
