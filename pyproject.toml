@@ -1,0 +1,32 @@
+[tool.black]
+line-length = 120
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 120
+src_paths = ["src", "tests"]
+
+[tool.coverage.report]
+fail_under = 10
+precision = 2
+
+[tool.pytest.ini_options]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "-v",
+    "--durations=10", # top k long running tests
+    "--durations-min=1"  # with the limit > x seconds
+]
+
+testpaths = ["./tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:sklearn",
+    "ignore::DeprecationWarning:setuptools",
+    "ignore::DeprecationWarning:distutils"
+]
+# action:message:category:module:line
+# https://docs.python.org/3/library/warnings.html#default-warning-filter

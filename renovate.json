@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "github>shelfio/renovate-config",
+    ":enablePreCommit"
+  ],
+  "pip_requirements": {
+    "fileMatch": ["requirements.txt", "requirements-dev.txt"]
+  },
+  "packageRules": [
+    {
+      "packageNames": ["boto3"],
+      "allowedVersions": "1.26.90"
+    },
+    {
+      "packageNames": ["botocore"],
+      "allowedVersions": "1.29.90"
+    }
+  ],
+  "labels": ["rnd"]
+}

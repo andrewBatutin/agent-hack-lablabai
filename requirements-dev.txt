@@ -1,0 +1,17 @@
+-r requirements.txt
+
+# local aws dev requirements
+# Check the version on Lambda: https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
+botocore==1.31.28
+
+# Code style & testing
+black==23.7.0
+coverage==7.3.0
+flake8==6.1.0
+isort==5.12.0
+pre-commit==3.3.3
+pytest==7.4.0
+pytest-cov==4.1.0
+junitparser==3.1.0
+markdownify==0.11.6
+omegaconf==2.3.0
