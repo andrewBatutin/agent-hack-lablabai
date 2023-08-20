@@ -18,8 +18,6 @@ load_dotenv()
 st.set_page_config(page_title="TAix", page_icon="💸")
 st.title("💸 TAix - Tax Advice Agent")
 
-WV_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
-
 
 class TaxiLimitsTool(BaseTool):
     name = "tax_limit_tool"
@@ -30,8 +28,8 @@ class TaxiLimitsTool(BaseTool):
 
         msgs = StreamlitChatMessageHistory()
         memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
-
-        vector_store = wv_retriever_limits(WV_URL)
+        w_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+        vector_store = wv_retriever_limits(w_url)
 
         # Setup LLM and QA chain
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
@@ -53,8 +51,8 @@ class TaxiInvoiceTool(BaseTool):
 
         msgs = StreamlitChatMessageHistory()
         memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
-
-        vector_store = wv_retriever(WV_URL)
+        w_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+        vector_store = wv_retriever(w_url)
 
         # Setup LLM and QA chain
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
