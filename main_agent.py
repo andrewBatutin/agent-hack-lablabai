@@ -34,7 +34,7 @@ class TaxiLimitsTool(BaseTool):
         # Setup LLM and QA chain
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, verbose=True, memory=memory)
-        query_template = f"What is the tax limit? Addinoal information: {query}"
+        query_template = f"What is the tax limit? Additional information: {query}"
         return qa_chain.run(question=query_template)
 
     async def _arun(self, query: str, run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
