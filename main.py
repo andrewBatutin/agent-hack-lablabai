@@ -56,7 +56,13 @@ def configure_retriever_wv():
     client = weaviate.Client(
         "http://localhost:8080", additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]}
     )
-    vectorstore = MyWeaviate(client, DOC_CLASS, "country", attributes=["value"])
+
+    vectorstore = MyWeaviate(
+        client,
+        DOC_CLASS,
+        "invoice_items",
+        attributes=["invoice_number", "value", "currency", "recipient_address", "country"],
+    )
     return vectorstore.as_retriever(
         search_kwargs={"k": 20, "where_filter": {"path": ["country"], "operator": "Equal", "valueText": "Germany"}}
     )
