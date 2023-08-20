@@ -94,7 +94,7 @@ def import_data(client):
             batch.add_data_object(data_properties, DOC_CLASS)
         # add a new index for tax limits
         tax_limit_properties = {
-            "limit_value": 100_000_000,
+            "limit_value": 10_000,
             "rule": "Applicable only to EU countries except Slovenia",
             "currency": "EUR",
         }
