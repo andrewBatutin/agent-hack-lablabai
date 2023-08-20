@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict, List
 
 import streamlit as st
 import weaviate
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
+from langchain.docstore.document import Document
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain.vectorstores import Weaviate
@@ -18,13 +20,46 @@ st.set_page_config(page_title="TAix", page_icon="💸")
 st.title("💸 TAix - Tax Advice Agent")
 
 
+class MyWeaviate(Weaviate):
+    def similarity_search_by_text(self, query: str, k: int = 4, **kwargs: Any) -> List[Document]:
+        """Return docs most similar to query.
+
+        Args:
+            query: Text to look up documents similar to.
+            k: Number of Documents to return. Defaults to 4.
+
+        Returns:
+            List of Documents most similar to the query.
+        """
+        content: Dict[str, Any] = {"concepts": [query]}
+        if kwargs.get("search_distance"):
+            content["certainty"] = kwargs.get("search_distance")
+        query_obj = self._client.query.get(self._index_name, self._query_attrs)
+        if kwargs.get("where_filter"):
+            query_obj = query_obj.with_where(kwargs.get("where_filter"))
+        if kwargs.get("additional"):
+            query_obj = query_obj.with_additional(kwargs.get("additional"))
+        result = query_obj.with_near_text(content).with_limit(k).do()
+        if "errors" in result:
+            raise ValueError(f"Error during query: {result['errors']}")
+        docs = []
+        for res in result["data"]["Get"][self._index_name]:
+            # text = res.pop(self._text_key)
+            # we need more than just the _text_key for valid answer
+            text = str(res)
+            docs.append(Document(page_content=text, metadata=res))
+        return docs
+
+
 @st.cache_resource(ttl="1h")
 def configure_retriever_wv():
     client = weaviate.Client(
         "http://localhost:8080", additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]}
     )
-    vectorstore = Weaviate(client, DOC_CLASS, "country")
-    return vectorstore.as_retriever(search_kwargs={"k": 20})
+    vectorstore = MyWeaviate(client, DOC_CLASS, "country", attributes=["value"])
+    return vectorstore.as_retriever(
+        search_kwargs={"k": 20, "where_filter": {"path": ["country"], "operator": "Equal", "valueText": "Germany"}}
+    )
 
 
 class StreamHandler(BaseCallbackHandler):
