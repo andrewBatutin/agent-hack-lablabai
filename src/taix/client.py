@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain.docstore.document import Document
 from langchain.vectorstores import Weaviate
 
-from src.schema import DOC_CLASS
+from src.schema import DOC_CLASS, TAX_LIMIT
 
 load_dotenv()
 
@@ -83,3 +83,19 @@ def wv_retriever(w_url):
         search_kwargs={"k": 20}
         # search_kwargs={"k": 20, "where_filter": {"path": ["country"], "operator": "NotEqual", "valueText": "Germany"}}
     )
+
+
+def wv_retriever_limits(w_url):
+    client = weaviate.Client(
+        w_url,
+        auth_client_secret=weaviate.AuthApiKey(api_key=os.environ["WV_API_KEY"]),
+        additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]},
+    )
+
+    vectorstore = MyWeaviate(
+        client,
+        TAX_LIMIT,
+        "limit_value",
+        attributes=["rule", "currency"],
+    )
+    return vectorstore.as_retriever(search_kwargs={"k": 1})

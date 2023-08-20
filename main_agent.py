@@ -11,7 +11,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory, StreamlitChatMessageHistory
 from langchain.tools import BaseTool
 
-from src.taix.client import wv_retriever
+from src.taix.client import wv_retriever, wv_retriever_limits
 
 load_dotenv()
 
@@ -19,6 +19,29 @@ st.set_page_config(page_title="TAix", page_icon="💸")
 st.title("💸 TAix - Tax Advice Agent")
 
 WV_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+
+
+class TaxiLimitsTool(BaseTool):
+    name = "tax_limit_tool"
+    description = "useful for when you need to get information tax limits"
+
+    def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        """Use the tool."""
+
+        msgs = StreamlitChatMessageHistory()
+        memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
+
+        vector_store = wv_retriever_limits(WV_URL)
+
+        # Setup LLM and QA chain
+        llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
+        qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, verbose=True, memory=memory)
+        query_template = f"What is the tax limit? Addinoal information: {query}"
+        return qa_chain.run(question=query_template)
+
+    async def _arun(self, query: str, run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError("custom_search does not support async")
 
 
 class TaxiInvoiceTool(BaseTool):
@@ -36,8 +59,8 @@ class TaxiInvoiceTool(BaseTool):
         # Setup LLM and QA chain
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, verbose=True, memory=memory)
-
-        return qa_chain.run(question=query)
+        query_template = f"Show all invoices. Additional information: {query}"
+        return qa_chain.run(question=query_template)
 
     async def _arun(self, query: str, run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
         """Use the tool asynchronously."""
@@ -51,7 +74,7 @@ def chat_with_doc():
 
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         tools = load_tools(["llm-math"], llm=llm)
-        tools.extend([TaxiInvoiceTool()])
+        tools.extend([TaxiInvoiceTool(), TaxiLimitsTool()])
         # tools = [TaxiInvoiceTool()]
         agent = initialize_agent(
             tools,
