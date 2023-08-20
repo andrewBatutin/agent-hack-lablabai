@@ -66,6 +66,25 @@ class TaxiInvoiceTool(BaseTool):
 
 
 def chat_with_doc():
+    with st.sidebar:
+        st.markdown("# Tax time!")
+        st.markdown("![Alt Text](https://media.tenor.com/DtopVisvlx4AAAAC/tax-doing-taxes.gif)")
+
+    with st.expander(
+        "[Shelf](https://shelf.io/) Team Presents TAix - Tax Advice Agent that helps you with your tax questions!"
+    ):
+        st.markdown(
+            """This demo was built for the [Autonomous Agents Hackathon](https://lablab.ai/event/autonomous-agents-hackathon).
+            TAix Agent takes Invoice and Tax Regulations data from [Weaviate](https://weaviate.io/) index. And does accounting and tax advice for you.
+            To put invoices to the index we have extracted useful information with [layoutlm-invoices](https://huggingface.co/impira/layoutlm-invoices).
+            And exposed it to the 🌍with this beautiful Streamlit app!
+            Follow us on [Twitter/X](https://twitter.com/ShelfDev) and [github](https://github.com/andrewBatutin/agent-hack-lablabai)
+            Start with:
+
+            Get all invoices amounts, calculate sum total for invoices from EU countries except Slovenia, and compare it with tax limit" to see how the agent works.
+            """
+        )
+
     if "agent" not in st.session_state:
         msgs = StreamlitChatMessageHistory()
         memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
