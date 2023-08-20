@@ -90,7 +90,7 @@ def import_data():
             # The properties from our schema
             data_properties = {
                 "file_name": encoded_file_path,
-                "pdf": base64_encoding,
+                # "pdf": base64_encoding,
                 "pdf_path": file.name,
                 "img_path": img_path,
                 **invoice_features,
