@@ -64,7 +64,7 @@ def configure_retriever_wv():
         attributes=["invoice_number", "value", "currency", "recipient_address", "country"],
     )
     return vectorstore.as_retriever(
-        search_kwargs={"k": 20, "where_filter": {"path": ["country"], "operator": "Equal", "valueText": "Germany"}}
+        search_kwargs={"k": 20, "where_filter": {"path": ["country"], "operator": "NotEqual", "valueText": "Germany"}}
     )
 
 
