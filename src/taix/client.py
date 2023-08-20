@@ -13,13 +13,8 @@ client = weaviate.Client(
 )
 
 
-def get_batch_with_cursor(client, class_name, class_properties, batch_size=20, cursor=None):
-    query = (
-        client.query.get(class_name, class_properties)
-        # Optionally retrieve the vector embedding by adding `vector` to the _additional fields
-        # .with_additional(["id vector"])
-        .with_limit(batch_size)
-    )
+def get_batch_with_cursor(client, class_name, batch_size=20, class_properties=None, filter=None, cursor=None):
+    query = client.query.get(class_name, class_properties).with_where(filter).with_limit(batch_size)
 
     if cursor is not None:
         return query.with_after(cursor).do()
@@ -27,6 +22,11 @@ def get_batch_with_cursor(client, class_name, class_properties, batch_size=20, c
         return query.do()
 
 
-def get_all_docs():
-    docs = get_batch_with_cursor(client, DOC_CLASS, ["file_name", "img_path", "pdf_path", "value"])
+def get_all_docs(features, filter):
+    docs = get_batch_with_cursor(
+        client,
+        DOC_CLASS,
+        class_properties=features,
+        filter=filter,
+    )
     return docs

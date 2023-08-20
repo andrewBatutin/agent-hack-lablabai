@@ -12,10 +12,10 @@ from langchain.vectorstores import Weaviate
 
 from src.schema import DOC_CLASS
 
+load_dotenv()
+
 st.set_page_config(page_title="TAix", page_icon="💸")
 st.title("💸 TAix - Tax Advice Agent")
-
-load_dotenv()
 
 
 @st.cache_resource(ttl="1h")
@@ -23,8 +23,8 @@ def configure_retriever_wv():
     client = weaviate.Client(
         "http://localhost:8080", additional_headers={"X-OpenAI-Api-Key": os.environ["OPENAI_API_KEY"]}
     )
-    vectorstore = Weaviate(client, DOC_CLASS, "invoice_items")
-    return vectorstore.as_retriever()
+    vectorstore = Weaviate(client, DOC_CLASS, "country")
+    return vectorstore.as_retriever(search_kwargs={"k": 20})
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -52,32 +52,40 @@ class PrintRetrievalHandler(BaseCallbackHandler):
             self.container.markdown(doc.page_content)
 
 
-def chat_with_wv():
-    vector_store = configure_retriever_wv()
+def chat_with_doc():
+    if "qa_chain" not in st.session_state:
+        vector_store = configure_retriever_wv()
 
-    msgs = StreamlitChatMessageHistory()
-    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
+        msgs = StreamlitChatMessageHistory()
+        memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
-    # Setup LLM and QA chain
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, streaming=True)
-    qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, memory=memory, verbose=True)
+        # Setup LLM and QA chain
+        llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
+        qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever=vector_store, memory=memory, verbose=True)
 
-    if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
-        msgs.clear()
-        msgs.add_ai_message("How can I help you?")
+        st.session_state["qa_chain"] = qa_chain
+        st.session_state["retriever"] = vector_store
 
-    avatars = {"human": "user", "ai": "assistant"}
-    for msg in msgs.messages:
-        st.chat_message(avatars[msg.type]).write(msg.content)
+    qa_chain = st.session_state.qa_chain
 
-    if user_query := st.chat_input(placeholder="Ask me anything!"):
+    if "messages" not in st.session_state or st.sidebar.button("Clear message history"):
+        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
+
+    user_query = st.chat_input(placeholder="Ask me anything!")
+
+    if user_query:
+        st.session_state.messages.append({"role": "user", "content": user_query})
         st.chat_message("user").write(user_query)
 
         with st.chat_message("assistant"):
             retrieval_handler = PrintRetrievalHandler(st.container())
             stream_handler = StreamHandler(st.empty())
-            response = qa_chain.run(user_query, callbacks=[retrieval_handler, stream_handler])
+            response = qa_chain.run(question=user_query, callbacks=[retrieval_handler, stream_handler])
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
 
 if __name__ == "__main__":
-    chat_with_wv()
+    chat_with_doc()
