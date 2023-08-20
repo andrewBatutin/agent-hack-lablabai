@@ -78,7 +78,7 @@ def chat_with_doc():
             TAix Agent takes Invoice and Tax Regulations data from [Weaviate](https://weaviate.io/) index. And does accounting and tax advice for you.
             To put invoices to the index we have extracted useful information with [layoutlm-invoices](https://huggingface.co/impira/layoutlm-invoices).
             And exposed it to the 🌍with this beautiful Streamlit app!
-            Follow us on [Twitter/X](https://twitter.com/ShelfDev) and [github](https://github.com/andrewBatutin/agent-hack-lablabai)
+            Follow us on [Twitter/X](https://twitter.com/ShelfDev) and [github](https://github.com/andrewBatutin/agent-hack-lablabai).
             Start with:
 
             Get all invoices amounts, calculate sum total for invoices from EU countries except Slovenia, and compare it with tax limit" to see how the agent works.
